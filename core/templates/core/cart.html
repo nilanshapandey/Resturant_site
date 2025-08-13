@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">Your Cart</h2>
+
+  {% if items %}
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Dish</th>
+          <th>Quantity</th>
+          <th>Price (₹)</th>
+          <th>Total (₹)</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>{{ item.dish.name }}</td>
+            <td>{{ item.qty }}</td>
+            <td>{{ item.dish.price }}</td>
+            <td>{{ item.subtotal }}</td>
+       <td>
+      <form method="post" action="{% url 'remove_from_cart' item.dish.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+      </form>
+    </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+
+    <div class="text-end mb-4">
+      <h4 class="fw-bold">Total: ₹{{ total }}</h4>
+      <a href="{% url 'home' %}" class="btn btn-secondary me-2">Continue Shopping</a>
+      <a href="{% url 'send_otp' %}" class="btn btn-success">Place Order</a>
+    </div>
+  {% else %}
+    <p class="text-center">Your cart is empty.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "core/base.html" %}
+{% block title %}Order History{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card card-info">
+    <div class="card-header">
+      <h3 class="card-title">Your Order History</h3>
+    </div>
+    <div class="card-body">
+      {% if orders %}
+        <ul class="list-group">
+          {% for order in orders %}
+            <li class="list-group-item">
+              Order ID: {{ order.id }} |
+              Date: {{ order.date }} |
+              Total: ₹{{ order.total_price }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">You have no order history.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

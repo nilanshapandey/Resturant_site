@@ -1,0 +1,194 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ restaurant.name }} - Menu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+<!-- Navbar -->
+<nav class="bg-gray-900 text-white px-4 py-3 flex justify-between items-center">
+  <a href="{% url 'home' %}" class="text-lg font-semibold">&larr; Back</a>
+  <div>
+    <strong class="text-xl">{{ restaurant.name }}</strong>
+    <span class="text-sm block">{{ restaurant.location }}</span>
+  </div>
+  <a href="{% url 'cart' %}" class="text-sm">Cart (<span id="cart-count">{{ cart_items|length }}</span>)</a>
+</nav>
+
+<!-- Restaurant Card -->
+<section class="p-4">
+  <div class="max-w-3xl mx-auto bg-white shadow rounded overflow-hidden">
+    {% if restaurant.image %}
+      <img class="w-full h-56 object-cover" src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}">
+    {% endif %}
+    <div class="p-4">
+      <h2 class="text-2xl font-semibold mb-2">{{ restaurant.name }}</h2>
+      <p class="text-gray-600">{{ restaurant.description }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- Menu Items -->
+<section class="p-4">
+  <h2 class="text-xl font-bold mb-4">Menu Items</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for item in menu_items %}
+      <div class="bg-white rounded shadow hover:shadow-xl transition duration-300 overflow-hidden">
+        {% if item.image %}
+          <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-48 object-cover">
+        {% endif %}
+        <div class="p-4">
+          <h3 class="text-lg font-bold">{{ item.name }}</h3>
+          <p class="text-gray-600">₹{{ item.price }}</p>
+          <div class="flex items-center mt-2 gap-2">
+            <label class="text-sm">Qty:</label>
+            <input type="number" id="qty-{{ item.id }}" value="1" min="1" class="w-16 px-2 py-1 border rounded">
+            <button onclick="addToCart({{ item.id }})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">Add</button>
+            <button onclick="removeFromCart({{ item.id }})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Remove</button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Cart and OTP Section -->
+<section class="p-4 max-w-2xl mx-auto">
+  <h3 class="font-bold text-lg mb-2">Your Cart</h3>
+  <div class="bg-white shadow rounded p-4">
+    {% if cart_items %}
+      <ul>
+       {% for entry in cart_items %}
+  <li class="mb-2">
+    {{ entry.item.name }} x {{ entry.qty }} = ₹{{ entry.subtotal }}
+    <button onclick="removeFromCart({{ entry.item.id }})" class="ml-2 text-red-600">✖</button>
+  </li>
+{% endfor %}
+
+      </ul>
+      <p class="font-bold mt-2">Total: ₹{{ total }}</p>
+    {% else %}
+      <p>No items in cart.</p>
+    {% endif %}
+  </div>
+
+  {% if cart_items %}
+    <div class="mt-4">
+      {% if not otp_sent %}
+        <form method="post" action="{% url 'send_otp' %}">
+          {% csrf_token %}
+          <button class="bg-yellow-500 text-white px-6 py-2 rounded">Send OTP</button>
+        </form>
+      {% elif not otp_verified %}
+        <form method="post" action="{% url 'verify_otp' %}" class="mt-4 flex gap-2">
+          {% csrf_token %}
+          <input type="text" name="otp" placeholder="Enter OTP" class="border px-3 py-2 rounded w-full">
+          <button class="bg-blue-500 text-white px-4 py-2 rounded">Verify</button>
+        </form>
+      {% else %}
+        <p class="text-green-600 font-semibold mt-4">OTP Verified! Your order is placed. 🎉</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
+<!-- JS for AJAX Add to Cart -->
+<script>
+function addToCart(itemId) {
+  const qty = document.getElementById(`qty-${itemId}`).value;
+  fetch("{% url 'add_to_cart_ajax' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ item_id: itemId, quantity: qty })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      document.getElementById('cart-count').innerText = data.cart_count;
+      loadCart();  // 🔁 Refresh cart after adding
+    }
+  });
+}
+
+function loadCart() {
+  fetch("{% url 'get_cart_count' %}")
+    .then(res => res.json())
+    .then(data => {
+      const cartContainer = document.querySelector(".bg-white.shadow.rounded.p-4 ul");
+      const totalDisplay = document.querySelector(".bg-white.shadow.rounded.p-4 p.font-bold");
+
+      if (!cartContainer || !totalDisplay) return;
+
+      if (data.cart.length === 0) {
+        cartContainer.innerHTML = "<p>No items in cart.</p>";
+        totalDisplay.innerText = "";
+        return;
+      }
+
+      let html = "";
+      data.cart.forEach(item => {
+        html += `<li class="mb-2">
+          ${item.name} x ${item.qty} = ₹${item.price * item.qty}
+          <button onclick="removeFromCart(${item.id})" class="ml-2 text-red-600">✖</button>
+        </li>`;
+      });
+      cartContainer.innerHTML = html;
+      totalDisplay.innerText = `Total: ₹${data.total}`;
+    });
+}
+
+  function removeFromCart(itemId) {
+    fetch(`/remove-from-cart/${itemId}/`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.status === "ok") {
+          // ✅ Reload the cart section after removal
+          loadCart();
+        } else {
+          alert("Failed to remove item.");
+        }
+      })
+      .catch(error => {
+        alert("Error removing item: " + error);
+      });
+  }
+
+  function loadCart() {
+    fetch('/get-cart/')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("cart").innerHTML = html;
+      });
+  }
+
+  // Optional: Load cart on page load
+  document.addEventListener('DOMContentLoaded', loadCart);
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadCart();
+
+  {% if otp_verified %}
+    setTimeout(() => {
+      document.querySelector(".bg-white.shadow.rounded.p-4 ul").innerHTML = "<p>Order placed. Cart is empty.</p>";
+      document.getElementById("cart-count").innerText = "0";
+    }, 1000);
+  {% endif %}
+});
+</script>
+
+
+</body>
+</html>

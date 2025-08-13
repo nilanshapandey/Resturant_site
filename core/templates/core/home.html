@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurant Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<!-- Header -->
+<header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto flex items-center justify-between px-4 py-4">
+        <h1 class="text-2xl font-bold text-gray-800">🍽️ Find Your Favorite Restaurant</h1>
+
+        <div class="flex gap-4 items-center">
+            <form method="GET" action="{% url 'search' %}" class="flex gap-2">
+                <input type="text" name="query" placeholder="Search dish or restaurant"
+                       class="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring focus:border-blue-300"
+                       value="{{ request.GET.query }}">
+                <select name="category" class="border rounded-md px-3 py-2 text-gray-600">
+                    <option value="">All Categories</option>
+                    <option value="Fast Food" {% if selected_category == 'Fast Food' %}selected{% endif %}>Fast Food</option>
+                    <option value="Indian" {% if selected_category == 'Indian' %}selected{% endif %}>Indian</option>
+                    <option value="Chinese" {% if selected_category == 'Chinese' %}selected{% endif %}>Chinese</option>
+                    <option value="Desserts" {% if selected_category == 'Desserts' %}selected{% endif %}>Desserts</option>
+                </select>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+            </form>
+
+            <!-- Login & Cart -->
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium">Login</a>
+                <a href="{% url 'cart' %}" class="relative text-gray-700 hover:text-blue-600 font-medium">
+                    🛒 Your Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="container mx-auto px-4 py-8">
+    {% if restaurants %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for rest in restaurants %}
+                <div class="bg-white rounded-xl shadow hover:shadow-xl transition duration-300">
+                    <img src="{{ rest.image.url }}" alt="{{ rest.name }}" class="w-full h-48 object-cover rounded-t-xl">
+                    <div class="p-4">
+                        <h2 class="text-xl font-semibold text-gray-800">{{ rest.name }}</h2>
+                        <p class="text-sm text-gray-600 truncate">{{ rest.description|truncatewords:10 }}</p>
+                        <div class="mt-3 flex justify-between items-center">
+                            <span class="bg-yellow-100 text-yellow-800 text-sm font-medium px-2 py-1 rounded">{{ rest.category }}</span>
+                            <button 
+                                onclick="openModal(`{{ rest.name|escapejs }}`, `{{ rest.description|escapejs }}`, `{{ rest.image.url }}`)" 
+                                class="text-blue-600 text-sm hover:underline">View Details</button>
+                        </div>
+                        <a href="{% url 'restaurant_menu' rest.id %}" class="block mt-4 text-center bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                            View Menu
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-500 text-lg mt-10">No restaurants found for this search.</p>
+    {% endif %}
+</main>
+
+<!-- Modal -->
+<div id="dishModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-6 relative">
+        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-xl">&times;</button>
+        <img id="modalImage" src="" alt="Dish Image" class="w-full h-48 object-cover rounded">
+        <h3 id="modalTitle" class="text-xl font-semibold mt-4"></h3>
+        <p id="modalDesc" class="text-gray-600 mt-2"></p>
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+    function openModal(name, description, imageUrl) {
+        document.getElementById('modalTitle').innerText = name;
+        document.getElementById('modalDesc').innerText = description;
+        document.getElementById('modalImage').src = imageUrl;
+        const modal = document.getElementById('dishModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('dishModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+</script>
+
+</body>
+</html>
