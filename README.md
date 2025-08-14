@@ -2,17 +2,24 @@
 
 A clean, responsive, and user-friendly website for showcasing restaurant menus, services, and contact details.
 
-🔗 Live Demo: your-restaurant-link.com
+🔗 Live Demo: 
 
-📄 OverviewThe Restaurant Website provides an elegant online presence for a restaurant, featuring a modern design, mouth-watering menu display, and an easy contact section.Built with simplicity and responsiveness in mind to ensure a great experience on all devices.
+📄 Overview:
+The Restaurant Website provides an elegant online presence for a restaurant, featuring a modern design, mouth-watering menu display, and an easy contact section.Built with simplicity and responsiveness in mind to ensure a great experience on all devices.
 
-🌐 Hosted on GitHub Pages / Your Hosting Service💻 Modern and appealing UI design📱 Fully responsive layout for mobile, tablet, and desktop🛠 Developed using HTML, CSS, and JavaScript
+🌐 Hosted on GitHub Pages / Your Hosting Service
+💻 Modern and appealing UI design
+📱 Fully responsive layout for mobile, tablet, and desktop
+🛠 Developed using HTML, CSS, and JavaScript
 
 🎯 Purpose
 
 This project was created to:
 
-✅ Provide a digital platform for customers to view menu and services💻 Practice front-end design & development skills🔁 Create a customizable restaurant template for any food business📂 Showcase real-life front-end project building
+✅ Provide a digital platform for customers to view menu and services
+💻 Practice front-end design & development skills
+🔁 Create a customizable restaurant template for any food business
+📂 Showcase real-life front-end project building
 
 🧰 Technologies Used
 
